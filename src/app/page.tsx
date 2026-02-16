@@ -82,9 +82,21 @@ function decodeEntity(text: string) {
     .trim();
 }
 
+function cleanTagValue(raw: string) {
+  let value = decodeEntity(raw);
+
+  const cdataMatch = value.match(/^<!\[CDATA\[([\s\S]*?)\]\]>$/i);
+  if (cdataMatch) value = cdataMatch[1].trim();
+
+  // Defensive fix for malformed single-slash protocol values.
+  value = value.replace(/^https:\/(?!\/)/i, "https://");
+
+  return value.trim();
+}
+
 function readTag(block: string, tag: string) {
   const match = block.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`, "i"));
-  return decodeEntity(match?.[1] ?? "");
+  return cleanTagValue(match?.[1] ?? "");
 }
 
 async function getNews() {
