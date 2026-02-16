@@ -38,13 +38,13 @@ const compact = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
-function pct(v?: number) {
-  if (v === undefined || Number.isNaN(v)) return "—";
+function pct(v?: number | null) {
+  if (v === undefined || v === null || Number.isNaN(v)) return "—";
   return `${v > 0 ? "+" : ""}${v.toFixed(2)}%`;
 }
 
-function tone(v?: number) {
-  if (v === undefined || Number.isNaN(v)) return "text-zinc-400";
+function tone(v?: number | null) {
+  if (v === undefined || v === null || Number.isNaN(v)) return "text-zinc-400";
   if (v > 0) return "text-emerald-400";
   if (v < 0) return "text-red-400";
   return "text-zinc-300";
@@ -99,7 +99,7 @@ export default async function Home() {
           <StatCard label="24h Volume" value={`$${compact.format(global.data.total_volume.usd)}`} />
           <StatCard
             label="BTC Dominance"
-            value={`${global.data.market_cap_percentage.btc.toFixed(2)}%`}
+            value={`${(global.data.market_cap_percentage?.btc ?? 0).toFixed(2)}%`}
           />
           <StatCard
             label="Mkt Cap 24h"
