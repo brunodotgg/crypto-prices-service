@@ -108,7 +108,7 @@ async function getNews() {
 
   const xml = await res.text();
   const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)]
-    .slice(0, 10)
+    .slice(0, 5)
     .map((m) => {
       const block = m[1];
       return {
