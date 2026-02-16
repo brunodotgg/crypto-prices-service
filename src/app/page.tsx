@@ -27,6 +27,12 @@ type GlobalData = {
   };
 };
 
+type NewsItem = {
+  title: string;
+  link: string;
+  pubDate: string;
+};
+
 const usd = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -66,8 +72,46 @@ async function getGlobal() {
   return (await res.json()) as GlobalData;
 }
 
+function decodeEntity(text: string) {
+  return text
+    .replaceAll("&amp;", "&")
+    .replaceAll("&quot;", '"')
+    .replaceAll("&#39;", "'")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .trim();
+}
+
+function readTag(block: string, tag: string) {
+  const match = block.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`, "i"));
+  return decodeEntity(match?.[1] ?? "");
+}
+
+async function getNews() {
+  const res = await fetch("https://cointelegraph.com/rss", {
+    next: { revalidate: 300 },
+  });
+
+  if (!res.ok) return [] as NewsItem[];
+
+  const xml = await res.text();
+  const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)]
+    .slice(0, 10)
+    .map((m) => {
+      const block = m[1];
+      return {
+        title: readTag(block, "title"),
+        link: readTag(block, "link"),
+        pubDate: readTag(block, "pubDate"),
+      } satisfies NewsItem;
+    })
+    .filter((n) => n.title && n.link);
+
+  return items;
+}
+
 export default async function Home() {
-  const [coins, global] = await Promise.all([getCoins(), getGlobal()]);
+  const [coins, global, news] = await Promise.all([getCoins(), getGlobal(), getNews()]);
 
   const topGainers = [...coins]
     .filter((c) => c.price_change_percentage_24h !== null)
@@ -137,6 +181,30 @@ export default async function Home() {
             </CardContent>
           </Card>
         </section>
+
+        <Card className="border-zinc-800 bg-[#0e1117]">
+          <CardHeader className="pb-2">
+            <CardTitle className="font-mono text-sm text-cyan-300">WIRE // CRYPTO NEWS (RSS)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 font-mono text-xs">
+            {news.length === 0 ? (
+              <p className="text-zinc-500">No feed items available.</p>
+            ) : (
+              news.map((item) => (
+                <a
+                  key={item.link}
+                  href={item.link}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block rounded border border-zinc-800 p-2 transition-colors hover:bg-zinc-900/50"
+                >
+                  <p className="text-zinc-100">{item.title}</p>
+                  <p className="mt-1 text-[10px] text-zinc-500">{item.pubDate}</p>
+                </a>
+              ))
+            )}
+          </CardContent>
+        </Card>
 
         <section className="space-y-2 md:hidden">
           {coins.slice(0, 40).map((c) => (
