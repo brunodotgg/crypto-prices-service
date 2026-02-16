@@ -138,7 +138,51 @@ export default async function Home() {
           </Card>
         </section>
 
-        <div className="overflow-hidden rounded-md border border-zinc-800 bg-[#0e1117]">
+        <section className="space-y-2 md:hidden">
+          {coins.slice(0, 40).map((c) => (
+            <article key={c.id} className="rounded-md border border-zinc-800 bg-[#0e1117] p-2.5 font-mono">
+              <div className="mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-zinc-500">#{c.market_cap_rank}</span>
+                  <span className="text-sm text-zinc-100">{c.symbol.toUpperCase()}</span>
+                  <span className="text-[11px] text-zinc-500">{c.name}</span>
+                </div>
+                <span className={`text-xs ${tone(c.price_change_percentage_24h)}`}>{pct(c.price_change_percentage_24h)}</span>
+              </div>
+              <div className="mb-2 flex items-end justify-between">
+                <p className="text-base text-zinc-100">{usd.format(c.current_price)}</p>
+                <div className="flex items-center gap-1 text-xs">
+                  {c.price_change_percentage_24h > 0 ? (
+                    <ArrowUpRight className={`h-3.5 w-3.5 ${tone(c.price_change_percentage_24h)}`} />
+                  ) : (
+                    <ArrowDownRight className={`h-3.5 w-3.5 ${tone(c.price_change_percentage_24h)}`} />
+                  )}
+                  <span className={tone(c.price_change_percentage_24h)}>{pct(c.price_change_percentage_24h)}</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-4 gap-1 text-[10px] text-zinc-400">
+                <div>
+                  <p className="text-zinc-500">1H</p>
+                  <p className={tone(c.price_change_percentage_1h_in_currency)}>{pct(c.price_change_percentage_1h_in_currency)}</p>
+                </div>
+                <div>
+                  <p className="text-zinc-500">7D</p>
+                  <p className={tone(c.price_change_percentage_7d_in_currency)}>{pct(c.price_change_percentage_7d_in_currency)}</p>
+                </div>
+                <div>
+                  <p className="text-zinc-500">MCAP</p>
+                  <p>${compact.format(c.market_cap)}</p>
+                </div>
+                <div>
+                  <p className="text-zinc-500">VOL</p>
+                  <p>${compact.format(c.total_volume)}</p>
+                </div>
+              </div>
+            </article>
+          ))}
+        </section>
+
+        <div className="hidden overflow-hidden rounded-md border border-zinc-800 bg-[#0e1117] md:block">
           <div className="max-h-[70vh] overflow-auto">
             <table className="w-full min-w-[920px] border-collapse font-mono text-xs">
               <thead className="sticky top-0 z-10 bg-[#111827] text-zinc-300">
